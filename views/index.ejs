@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.2/axios.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/webcam-easy/dist/webcam-easy.min.js"></script>
+</head>
+<body>
+    <video id="webcam" autoplay playsinline width="640" height="480"></video>
+<canvas id="canvas" class="d-none"></canvas>
+
+<button onclick="submit()">Click</button>
+<script>
+    const webcamElement = document.getElementById('webcam');
+const canvasElement = document.getElementById('canvas');
+const webcam = new Webcam(webcamElement, 'user', canvasElement);
+webcam.start()
+  .then(result =>{
+    console.log("webcam started");
+  })
+  .catch(err => {
+    console.log(err);
+});
+  function submit(){
+    let dataURL= webcam.snap();
+     dataURL = canvas.toDataURL('image/jpeg', 0.5);
+    var blob = dataURItoBlob(dataURL);
+         var formData = new FormData(); 
+         formData.append("productImage", blob,"thumb.jpeg"); 
+         const response =  axios.post('//localhost:3000/products', formData, {
+         headers: {
+           'Content-Type': 'multipart/form-data'
+         }
+         
+       
+     });
+     
+  }
+  function dataURItoBlob(dataURI) {
+    // convert base64/URLEncoded data component to raw binary data held in a string
+    var byteString;
+    if (dataURI.split(',')[0].indexOf('base64') >= 0)
+        byteString = atob(dataURI.split(',')[1]);
+    else
+        byteString = unescape(dataURI.split(',')[1]);
+
+    // separate out the mime component
+    var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+
+    // write the bytes of the string to a typed array
+    var ia = new Uint8Array(byteString.length);
+    for (var i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+    }
+
+    return new Blob([ia], {type:mimeString});
+}
+  function convertURIToImageData(URI) {
+  return new Promise(function(resolve, reject) {
+    if (URI == null) return reject();
+    var canvas = document.createElement('canvas'),
+        context = canvas.getContext('2d'),
+        image = new Image();
+    image.addEventListener('load', function() {
+      canvas.width = image.width;
+      canvas.height = image.height;
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      resolve(context.getImageData(0, 0, canvas.width, canvas.height));
+    }, false);
+    image.src = URI;
+  });
+}
+
+  function blobCreationFromURL(inputURI) { 
+  
+  var binaryVal; 
+
+  // mime extension extraction 
+  var inputMIME = inputURI.split(',')[0].split(':')[1].split(';')[0]; 
+
+  // Extract remaining part of URL and convert it to binary value 
+  if (inputURI.split(',')[0].indexOf('base64') >= 0) 
+      binaryVal = atob(inputURI.split(',')[1]); 
+
+  // Decoding of base64 encoded string 
+  else
+      binaryVal = unescape(inputURI.split(',')[1]); 
+
+  // Computation of new string in which hexadecimal 
+  // escape sequences are replaced by the character  
+  // it represents 
+
+  // Store the bytes of the string to a typed array 
+  var blobArray = []; 
+  for (var index = 0; index < binaryVal.length; index++) { 
+      blobArray.push(binaryVal.charCodeAt(index)); 
+  } 
+
+  return new Blob([blobArray], { 
+      type: inputMIME 
+  }); 
+} 
+
+
+
+</script>
+</body>
+</html>
